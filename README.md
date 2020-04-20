@@ -9,7 +9,7 @@ Student Information System
 ## Use Cases Defined
 
 1. Validate
-2. Manage Course Grades
-3. Manage Course
-4. Display Student Information
-5. Track Class Credits
+2. Create course
+3. Assign instructor
+4. Manage course
+5. View student information
