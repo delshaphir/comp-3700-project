@@ -11,7 +11,9 @@ class DatabaseReader():
             csvreader = csv.reader(f, dialect='excel')        
             for row in csvreader:
                 data.append(row)
-        return data
+        
+        # Skip first row (headers)
+        return data[1:]
 
 
 class Validator():

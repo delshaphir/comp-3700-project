@@ -3,6 +3,7 @@ from users import IDAllocator, Course, Person, Student, Admin
 from getpass import getpass
 import sys
 
+login_database = 'database_logins.csv'
 reader = DatabaseReader()
 session = None
 validator = None
@@ -61,7 +62,7 @@ def login(validator):
     pwd = getpass('Password: ')
 
     # Check if user exists in database
-    user_rows = DatabaseReader().read('database.csv')
+    user_rows = DatabaseReader().read(login_database)
     user_row = [row for row in user_rows if row[1] == email][0]
     user_id = int(user_row[0])
     return validator.validate(user_id)
@@ -72,16 +73,18 @@ def menu(session: Session):
         ('Access Parent controls', parent_menu),
         ('Access Instructor controls', instructor_menu),
         ('Access Administrator controls', admin_menu),
-        ('Exit', None)
+        ('Exit', lambda: -1)
     ]
     choice = prompt_options(options)
     ret = options[choice][1](session.access_level())
     if ret == 0:
         menu(session)
+    else:
+        return
 
 def main():
     # Initialize validator
-    validator = Validator('database.csv')
+    validator = Validator(login_database)
     
     print('Welcome to the Student Information System.')
     priv = login(validator)
@@ -94,6 +97,8 @@ def main():
 
     # Show menu()
     menu(session)
+
+    print('Thank you.')
 
 if __name__ == '__main__':
     main()
