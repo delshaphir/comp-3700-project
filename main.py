@@ -8,43 +8,51 @@ reader = DatabaseReader()
 session = None
 validator = None
 
-def prompt_options(options):
+def prompt_options(options, session):
     print('Please make a selection.')
     for i, opt_tuple in enumerate(options):
         print('[{}] {}'.format(i, opt_tuple[0]))
-    return int(input('> '))
+    choice = int(input('> '))
+    if session.expired():
+        print('Sorry, you have been idle for longer than {} seconds. Your session has expired.'.format(session.SESSION_LIMIT))
+        return -1
+    return choice
 
-def student_menu(access_level):
+def student_menu(session):
     '''
     Show options for a student.
     '''
+    access_level = session.access_level()
     if access_level != Validator.STUDENT_ACCESS:
         print('You must be a student to access this menu.')
         return 0
     return -1
 
-def parent_menu(access_level):
+def parent_menu(session):
     '''
     Show options for a parent.
     '''
+    access_level = session.access_level()
     if access_level != Validator.PARENT_ACCESS:
         print('You must be a parent to access this menu.')
         return 0
     return -1
 
-def instructor_menu(access_level):
+def instructor_menu(session):
     '''
     Show options for an instructor.
     '''
+    access_level = session.access_level()
     if access_level != Validator.INSTRUCTOR_ACCESS:
         print('You must be an instructor to access this menu.')
         return 0
     return -1
 
-def admin_menu(access_level):
+def admin_menu(session):
     '''
     Show options for an administrator.
     '''
+    access_level = session.access_level()
     if access_level != Validator.ADMIN_ACCESS:
         print('You must be an administrator to access this menu.')
         return 0
@@ -54,7 +62,7 @@ def admin_menu(access_level):
         ('Assign a course to an instructor', parent_menu),
         ('Add an instructor', _),
     ]
-    choice = prompt_options(options)
+    choice = prompt_options(options, session)
     return -1
 
 def login(validator):
@@ -73,10 +81,10 @@ def menu(session: Session):
         ('Access Parent controls', parent_menu),
         ('Access Instructor controls', instructor_menu),
         ('Access Administrator controls', admin_menu),
-        ('Exit', lambda: -1)
+        ('Exit', lambda _: -1)
     ]
-    choice = prompt_options(options)
-    ret = options[choice][1](session.access_level())
+    choice = prompt_options(options, session)
+    ret = options[choice][1](session)
     if ret == 0:
         menu(session)
     else:
@@ -98,7 +106,7 @@ def main():
     # Show menu()
     menu(session)
 
-    print('Thank you.')
+    print('You have been logged out of the Student Information System.')
 
 if __name__ == '__main__':
     main()

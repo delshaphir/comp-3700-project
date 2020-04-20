@@ -87,23 +87,21 @@ class Privilege():
 class Session():
     def __init__(self, privileges):
         self.start = dt.datetime.now() # time of session creation
-        self.SESSION_LIMIT = 10 # amount of time after which session should expire
+        self.last_action = self.start # time of last session action
+        self.SESSION_LIMIT = 3000 # amount of time (seconds) after which session should expire
         self.privileges = privileges
-    
-    def time_elapsed(self, start, end):
-        '''
-        Returns the time (in minutes) elapsed between two times
-        '''
-        diff = end - start
-        secs_in_day = 86400
-        return diff.days * secs_in_day / 60
 
     def expired(self):
         '''
-        Returns whether the sesison has expired
+        Checks whether the session has expired. Also updates last_action
         '''
-        current_time = dt.datetime.now()
-        return self.time_elapsed(self.start, current_time) > self.SESSION_LIMIT
+        now = dt.datetime.now()
+        diff = now - self.last_action
+        self.last_action = now
+        if diff.days > 0:
+            return True
+        time_elapsed = diff.seconds
+        return time_elapsed > self.SESSION_LIMIT
 
     def access_level(self):
         return self.privileges.level()

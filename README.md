@@ -8,8 +8,8 @@ Student Information System
 
 ## Use Cases Defined
 
-1. Validate
-2. Create course
-3. Assign instructor
-4. Manage course
-5. View student information
+- [x] Validate
+- [ ] Create course
+- [ ] Assign instructor
+- [ ] View student information
+- [x] Idle (Expire session)
