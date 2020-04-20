@@ -33,9 +33,9 @@ class Validator():
         '''
         data = DatabaseReader().read(self.database)
         user_row = [row for row in data if int(row[0]) == user_id][0]
-        access_level = int(user_row[3])
-        students = user_row[4].split(',')
-        courses = user_row[5].split(',')
+        access_level = int(user_row[4])
+        students = user_row[5].split(',')
+        courses = user_row[6].split(',')
         priv = None
         
         # Students cannot manage other students or courses
