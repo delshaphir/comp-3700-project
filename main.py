@@ -25,7 +25,7 @@ class StudentInformationSystem():
         # Controllers
         self.student_control = control.StudentController(self.db_path_stem + self.db['students'])
         self.course_control = control.CourseController(self.db_path_stem + self.db['courses'])
-        self.instr_control = control.InstructorController(self.db_path_stem + self.db['login'])
+        self.admin_control = control.AdminController(self.db_path_stem + self.db['login'])
 
     def start(self):
         print('Welcome to the Student Information System')
@@ -62,7 +62,8 @@ class StudentInformationSystem():
             return 0
         view_student_data = lambda: self.student_control.view_student_data(self.session.user_id)
         options = [
-            ('View student data', view_student_data)
+            ('View student data', view_student_data),
+            ('Return', lambda: 0)
         ]
         choice = self.prompt_options(options)
         return options[choice][1]()
@@ -75,7 +76,14 @@ class StudentInformationSystem():
         if access_level != Validator.PARENT_ACCESS:
             print('You must be a parent to access this menu.')
             return 0
-        return 0
+        view_student_data = lambda: self.student_control.view_student_data_by_name(
+            self.admin_control.find_student(self.session.user_id))
+        options = [
+            ('View student data', view_student_data),
+            ('Return', lambda: 0)
+        ]
+        choice = self.prompt_options(options)
+        return options[choice][1]()
 
     def instructor_menu(self):
         '''
@@ -96,10 +104,11 @@ class StudentInformationSystem():
             print('You must be an administrator to access this menu.')
             return 0
         print('Welcome to the Administrator menu.')
-        assign_course = lambda: self.course_control.assign_instructor(self.instr_control.find_instructor())
+        assign_course = lambda: self.course_control.assign_instructor(self.admin_control.find_instructor())
         options = [
             ('Create a course', self.course_control.add_course),
             ('Assign a course to an instructor', assign_course),
+            ('Return', lambda: 0)
         ]
         choice = self.prompt_options(options)
         return options[choice][1]()

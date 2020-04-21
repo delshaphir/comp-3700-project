@@ -66,13 +66,13 @@ class CourseController():
             writer.writerows(lines)
             writer.writerow(edit_line)
 
-class InstructorController():
+class AdminController():
 
     def __init__(self, database_path):
         self.database = database_path
 
     def find_instructor(self):
-        name = input('Name of instructor (Firstname Lastname): ')
+        name = input('Name of instructor (Firstname Lastname): ').split()
         instr_id = self._find_instructor(name)
         if instr_id < 0:
             print('Instructor with name {} not found.'.format(name))
@@ -82,8 +82,7 @@ class InstructorController():
 
     def _find_instructor(self, name):
         keep_line = None
-        name_parts = name.split()
-        first, last = name_parts[0], name_parts[1]
+        first, last = name[0], name[1]
         with open(self.database, mode='r') as f:
             reader = csv.reader(f)
             for line in reader:
@@ -94,21 +93,36 @@ class InstructorController():
             return -1
         return int(keep_line[0])
 
+    def find_student(self, user_id: int):
+        name = input('Student\'s first and last name: ')
+        found_name = False
+        with open(self.database, mode='r') as f:
+            reader = csv.reader(f)
+            for line in reader:
+                student_names = line[5].split(',')
+                if name in student_names:
+                    found_name = True
+                    break
+        if not found_name:
+            print('You do not manage any student with this name.')
+            return ''
+        return name
+
 class StudentController():
 
     def __init__(self, database_path):
         self.database = database_path
 
-    def view_student_data(self, user_id):
+    def view_student_data(self, stu_id: str):
         keep_line = None
         with open(self.database, mode='r') as f:
             reader = csv.reader(f)
             for line in reader:
-                if line[0] == user_id:
+                if line[0] == stu_id:
                     keep_line = line
                     break
         if keep_line is None:
-            print('There is no student in the database associated with this account.')
+            print('No matching student found in the database.')
             return 0
         print() # empty line
         first, last = keep_line[1], keep_line[2]
@@ -120,5 +134,16 @@ class StudentController():
             grade = grades[i].strip()
             print('Course: {}'.format(course), '\tGrade: {}'.format(grade))
         return 0
-
-            
+    
+    def view_student_data_by_name(self, stu_name: str):
+        if stu_name == '':
+            return 0
+        name_parts = stu_name.split()
+        first, last = name_parts[0], name_parts[1]
+        stu_id = None
+        with open(self.database, mode='r') as f:
+            reader = csv.reader(f)
+            for line in reader:
+                if line[1] == first and line[2] == last:
+                    stu_id = line[0]
+        return self.view_student_data(stu_id)
