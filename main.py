@@ -1,14 +1,16 @@
-from validator import DatabaseReader, Validator, Privilege, Session
-from users import IDAllocator, Course, Person, Student, Admin
+from student_system.users import IDAllocator, Course
+from student_system.validator import DatabaseReader, Validator, Privilege, Session
 from getpass import getpass
+from typing import List
 import sys
 
 login_database = 'database_logins.csv'
+student_database = 'database_students.csv'
 reader = DatabaseReader()
 session = None
 validator = None
 
-def prompt_options(options, session):
+def prompt_options(options: List[tuple], session: Session):
     print('Please make a selection.')
     for i, opt_tuple in enumerate(options):
         print('[{}] {}'.format(i, opt_tuple[0]))
@@ -18,7 +20,7 @@ def prompt_options(options, session):
         return -1
     return choice
 
-def student_menu(session):
+def student_menu(session: Session):
     '''
     Show options for a student.
     '''
@@ -28,7 +30,7 @@ def student_menu(session):
         return 0
     return -1
 
-def parent_menu(session):
+def parent_menu(session: Session):
     '''
     Show options for a parent.
     '''
@@ -38,7 +40,7 @@ def parent_menu(session):
         return 0
     return -1
 
-def instructor_menu(session):
+def instructor_menu(session: Session):
     '''
     Show options for an instructor.
     '''
@@ -48,7 +50,7 @@ def instructor_menu(session):
         return 0
     return -1
 
-def admin_menu(session):
+def admin_menu(session: Session):
     '''
     Show options for an administrator.
     '''
@@ -60,20 +62,16 @@ def admin_menu(session):
     options = [
         ('Create a course', student_menu),
         ('Assign a course to an instructor', parent_menu),
-        ('Add an instructor', _),
     ]
     choice = prompt_options(options, session)
     return -1
 
-def login(validator):
+def login(validator: Validator):
     email = input('Email address: ')
     pwd = getpass('Password: ')
 
     # Check if user exists in database
-    user_rows = DatabaseReader().read(login_database)
-    user_row = [row for row in user_rows if row[1] == email][0]
-    user_id = int(user_row[0])
-    return validator.validate(user_id)
+    return validator.validate(email)
 
 def menu(session: Session):
     options = [
@@ -95,7 +93,7 @@ def main():
     validator = Validator(login_database)
     
     print('Welcome to the Student Information System.')
-    priv = login(validator)
+    user_id, priv = login(validator)
     if priv is None:
         print('Invalid user.')
         sys.exit()

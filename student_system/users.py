@@ -22,17 +22,17 @@ class Course:
         return '{} {}'.format(self.department, self.code)
 
 class Person:
-    def __init__(self, first: str, last: str, id_allocator: IDAllocator):
+    def __init__(self, user_id, first, last):
         self.first = first
         self.last = last
-        self.id = id_allocator.new_id()
+        self.id = user_id
 
     def full_name(self):
         return '{}, {}'.format(last, first)
 
 class Student(Person):
-    def __init__(self, first, last, id_allocator, courses):
-        super().__init__(first, last, id_allocator)
+    def __init__(self, user_id, first, last, courses, grades):
+        super().__init__(user_id, first, last)
         self.courses = courses
     def courses_enrolled(self):
         return self.courses
@@ -41,5 +41,5 @@ class Admin(Person):
     '''
     Represents either an Instructor or Administrator
     '''
-    def __init__(self, first, last, id_allocator):
-        super().__init__(first, last, id_allocator)
+    def __init__(self, user_id, first, last):
+        super().__init__(user_id, first, last)

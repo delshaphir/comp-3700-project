@@ -1,3 +1,4 @@
+
 import datetime as dt
 import csv
 
@@ -15,7 +16,6 @@ class DatabaseReader():
         # Skip first row (headers)
         return data[1:]
 
-
 class Validator():
 
     # Access levels
@@ -28,13 +28,14 @@ class Validator():
         # Database (.csv file) to use for validation
         self.database = database
 
-    def validate(self, user_id):
+    def validate(self, email):
         '''
         Upon login success, searches for a user in the database
         and returns a Privileges object corresponding to their privileges.
         '''
-        data = DatabaseReader().read(self.database)
-        user_row = [row for row in data if int(row[0]) == user_id][0]
+        validation_data = DatabaseReader().read(self.database)
+        user_row = [row for row in validation_data if row[1] == email][0]
+        user_id = user_row[0]
         access_level = int(user_row[4])
         students = user_row[5].split(',')
         courses = user_row[6].split(',')
@@ -52,7 +53,7 @@ class Validator():
         elif access_level == self.INSTRUCTOR_ACCESS or access_level == self.ADMIN_ACCESS:
             priv = Privilege(access_level, courses=courses)
 
-        return priv
+        return user_id, priv
 
 class Privilege():
     def __init__(self, level, students=[], courses=[]):

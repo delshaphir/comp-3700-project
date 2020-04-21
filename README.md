@@ -8,6 +8,8 @@ Student Information System
 
 ## Use Cases Defined
 
+* **Note:** I'm pretty sure the Student/Parent/Admin classes defined in `users.py` are unnecessary. Will fix.
+
 - [x] Validate
 - [ ] Create course
 - [ ] Assign instructor
