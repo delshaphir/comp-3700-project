@@ -1,110 +1,123 @@
-from student_system.users import IDAllocator, Course
 from student_system.validator import DatabaseReader, Validator, Privilege, Session
+import student_system.controllers as control
 from getpass import getpass
 from typing import List
 import sys
 
-login_database = 'database_logins.csv'
-student_database = 'database_students.csv'
-reader = DatabaseReader()
-session = None
-validator = None
+class StudentInformationSystem():
 
-def prompt_options(options: List[tuple], session: Session):
-    print('Please make a selection.')
-    for i, opt_tuple in enumerate(options):
-        print('[{}] {}'.format(i, opt_tuple[0]))
-    choice = int(input('> '))
-    if session.expired():
-        print('Sorry, you have been idle for longer than {} seconds. Your session has expired.'.format(session.SESSION_LIMIT))
-        return -1
-    return choice
+    # Databases
+    db_path_stem = 'database/'
+    db = {
+        'login': 'logins.csv',
+        'students': 'students.csv',
+        'courses': 'courses.csv',
+    }
 
-def student_menu(session: Session):
-    '''
-    Show options for a student.
-    '''
-    access_level = session.access_level()
-    if access_level != Validator.STUDENT_ACCESS:
-        print('You must be a student to access this menu.')
-        return 0
-    return -1
+    def __init__(self):
+        self.validator = Validator(self.db_path_stem + self.db['login'])
+        user_id, priv = self.login()
+        if priv is None:
+            print('Invalid user.')
+            sys.exit()
+        self.session = Session(user_id, priv)
 
-def parent_menu(session: Session):
-    '''
-    Show options for a parent.
-    '''
-    access_level = session.access_level()
-    if access_level != Validator.PARENT_ACCESS:
-        print('You must be a parent to access this menu.')
-        return 0
-    return -1
+        # Controllers
+        self.student_control = control.StudentController(self.db_path_stem + self.db['students'])
+        self.course_control = control.CourseController(self.db_path_stem + self.db['courses'])
+        self.instr_control = control.InstructorController(self.db_path_stem + self.db['login'])
 
-def instructor_menu(session: Session):
-    '''
-    Show options for an instructor.
-    '''
-    access_level = session.access_level()
-    if access_level != Validator.INSTRUCTOR_ACCESS:
-        print('You must be an instructor to access this menu.')
-        return 0
-    return -1
+    def start(self):
+        print('Welcome to the Student Information System')
+        self.menu()
+        print('You have been logged out of the Student Information System.')
 
-def admin_menu(session: Session):
-    '''
-    Show options for an administrator.
-    '''
-    access_level = session.access_level()
-    if access_level != Validator.ADMIN_ACCESS:
-        print('You must be an administrator to access this menu.')
-        return 0
-    print('Welcome to the Administrator menu.')
-    options = [
-        ('Create a course', student_menu),
-        ('Assign a course to an instructor', parent_menu),
-    ]
-    choice = prompt_options(options, session)
-    return -1
+    def login(self):
+        email = input('Email address: ')
+        pwd = getpass('Password: ')
+        return self.validator.validate(email)
 
-def login(validator: Validator):
-    email = input('Email address: ')
-    pwd = getpass('Password: ')
-
-    # Check if user exists in database
-    return validator.validate(email)
-
-def menu(session: Session):
-    options = [
-        ('Access Student controls', student_menu),
-        ('Access Parent controls', parent_menu),
-        ('Access Instructor controls', instructor_menu),
-        ('Access Administrator controls', admin_menu),
-        ('Exit', lambda _: -1)
-    ]
-    choice = prompt_options(options, session)
-    ret = options[choice][1](session)
-    if ret == 0:
-        menu(session)
-    else:
+    def menu(self):
+        print() # empty line
+        options = [
+            ('Access Student controls', self.student_menu),
+            ('Access Parent controls', self.parent_menu),
+            ('Access Instructor controls', self.instructor_menu),
+            ('Access Administrator controls', self.admin_menu),
+            ('Log out', lambda: -1)
+        ]
+        choice = self.prompt_options(options)
+        ret = options[choice][1]()
+        if ret == 0:
+            self.menu()
         return
 
+    def student_menu(self):
+        '''
+        Show options for a student.
+        '''
+        access_level = self.session.access_level()
+        if access_level != Validator.STUDENT_ACCESS:
+            print('You must be a student to access this menu.')
+            return 0
+        view_student_data = lambda: self.student_control.view_student_data(self.session.user_id)
+        options = [
+            ('View student data', view_student_data)
+        ]
+        choice = self.prompt_options(options)
+        return options[choice][1]()
+
+    def parent_menu(self):
+        '''
+        Show options for a parent.
+        '''
+        access_level = self.session.access_level()
+        if access_level != Validator.PARENT_ACCESS:
+            print('You must be a parent to access this menu.')
+            return 0
+        return 0
+
+    def instructor_menu(self):
+        '''
+        Show options for an instructor.
+        '''
+        access_level = self.session.access_level()
+        if access_level != Validator.INSTRUCTOR_ACCESS:
+            print('You must be an instructor to access this menu.')
+            return 0
+        return -1
+
+    def admin_menu(self):
+        '''
+        Show options for an administrator.
+        '''
+        access_level = self.session.access_level()
+        if access_level != Validator.ADMIN_ACCESS:
+            print('You must be an administrator to access this menu.')
+            return 0
+        print('Welcome to the Administrator menu.')
+        assign_course = lambda: self.course_control.assign_instructor(self.instr_control.find_instructor())
+        options = [
+            ('Create a course', self.course_control.add_course),
+            ('Assign a course to an instructor', assign_course),
+        ]
+        choice = self.prompt_options(options)
+        return options[choice][1]()
+
+    def prompt_options(self, options):
+        print('Please make a selection.')
+        for i, opt_tuple in enumerate(options):
+            print('[{}] {}'.format(i, opt_tuple[0]))
+        choice = int(input('> '))
+        limit = self.session.SESSION_LIMIT
+        if self.session.expired():
+            print('Sorry, you have been idle for longer than {} seconds. Your session has expired.'.format(limit))
+            return -1
+        return choice
+
 def main():
-    # Initialize validator
-    validator = Validator(login_database)
-    
-    print('Welcome to the Student Information System.')
-    user_id, priv = login(validator)
-    if priv is None:
-        print('Invalid user.')
-        sys.exit()
-
-    # Initialize session
-    session = Session(priv)
-
-    # Show menu()
-    menu(session)
-
-    print('You have been logged out of the Student Information System.')
+    system = StudentInformationSystem()
+    system.start()
 
 if __name__ == '__main__':
     main()

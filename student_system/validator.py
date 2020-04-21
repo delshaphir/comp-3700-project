@@ -49,7 +49,7 @@ class Validator():
         elif access_level == self.PARENT_ACCESS:
             priv = Privilege(access_level, students=students)
             
-        # Instructors manage courses. Administrators manage courses and *all* instructors
+        # Instructors manage a list of courses. Administrators manage all courses and instructors.
         elif access_level == self.INSTRUCTOR_ACCESS or access_level == self.ADMIN_ACCESS:
             priv = Privilege(access_level, courses=courses)
 
@@ -86,7 +86,8 @@ class Privilege():
         return self._students
 
 class Session():
-    def __init__(self, privileges):
+    def __init__(self, user_id, privileges):
+        self.user_id = user_id
         self.start = dt.datetime.now() # time of session creation
         self.last_action = self.start # time of last session action
         self.SESSION_LIMIT = 3000 # amount of time (seconds) after which session should expire
