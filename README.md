@@ -13,3 +13,17 @@ Student Information System
 - [x] Assign instructor
 - [x] View student information
 - [x] Idle (Expire session)
+
+## Setup
+
+Clone the GitHub repo:
+
+```shell
+git clone git@github.com:jedfras/comp-3700-project.git
+```
+
+Start the program:
+
+```shell
+python main.py
+```
